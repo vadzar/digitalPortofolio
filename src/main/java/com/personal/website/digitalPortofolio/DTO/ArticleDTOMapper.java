@@ -12,9 +12,11 @@ public class ArticleDTOMapper implements Function<Article, ArticleDTO> {
 		return new ArticleDTO(
 				article.getId(),
 				article.getTitle(),
+				article.getAuthorName(),
 				article.getContent(),
 				article.getDateTimePosted(),
-				article.getLastEdited()
+				article.getLastEdited(),
+				article.getType()
 		);
 	}
 }

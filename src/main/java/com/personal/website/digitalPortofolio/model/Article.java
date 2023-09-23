@@ -5,13 +5,13 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "article")
 public class Article {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	long id;
 
 	private String title;
-	private String author;
 
 	@Column(name="content", columnDefinition = "TEXT")
 	private String content;
@@ -22,18 +22,16 @@ public class Article {
 	@Enumerated(value = EnumType.STRING)
 	ArticleType type;
 
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	Author author;
+
 	public Article() {
 	}
 
-	public Article(String title, String author, String content, ArticleType type) {
+	public Article(String title, String content, ArticleType type) {
 		this.title = title;
-		this.author = author;
 		this.content = content;
 		this.type = type;
-	}
-
-	public enum ArticleType {
-		PROJECT, BLOG
 	}
 
 	public long getId() {
@@ -42,10 +40,6 @@ public class Article {
 
 	public String getTitle() {
 		return title;
-	}
-
-	public String getAuthor() {
-		return author;
 	}
 
 	public String getContent() {
@@ -64,12 +58,14 @@ public class Article {
 		return type;
 	}
 
-	public void setTitle(String title) {
-		this.title = title;
+	public Author getAuthor() {
+		return author;
 	}
 
-	public void setAuthor(String author) {
-		this.author = author;
+	public String getAuthorName() { return author != null ? author.getName() : ""; }
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public void setContent(String content) {
@@ -88,12 +84,16 @@ public class Article {
 		this.type = type;
 	}
 
+	public void setAuthor(Author author) {
+		this.author = author;
+	}
+
 	@Override
 	public String toString() {
 		return "Article{" +
 				"id=" + id +
 				", title='" + title + '\'' +
-				", author='" + author + '\'' +
+				", author='" + getAuthor() + '\'' +
 				", content='" + content + '\'' +
 				", dateTimePosted=" + dateTimePosted +
 				", lastEdited=" + lastEdited +

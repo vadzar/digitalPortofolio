@@ -19,14 +19,19 @@ public class ArticleController {
 	}
 
 	@GetMapping("/list")
-	public List<ArticleDTO> getArticleList() { return articleService.getList(); }
+	public List<ArticleDTO> getArticleList(@RequestParam long authorId) {
+		return articleService.getList(authorId);
+	}
 
 	@GetMapping("/{id}")
-	public ArticleDTO getArticle(@PathVariable long id) { return articleService.getArticle(id); }
+	public ArticleDTO getArticle(@PathVariable long id) {
+		return articleService.getArticle(id);
+	}
 
 	@PostMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ArticleDTO createArticle(@RequestBody Article article) {
-		return articleService.createArticle(article);
+	public ArticleDTO createArticle(@RequestParam Long authorId,
+	                                @RequestBody Article article) {
+		return articleService.createArticle(article, authorId);
 	}
 
 	@PostMapping(value = "/{id}/update", consumes = MediaType.APPLICATION_JSON_VALUE)

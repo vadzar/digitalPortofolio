@@ -3,16 +3,17 @@ package com.personal.website.digitalPortofolio.service;
 import com.personal.website.digitalPortofolio.DTO.ArticleDTO;
 import com.personal.website.digitalPortofolio.DTO.ArticleDTOMapper;
 import com.personal.website.digitalPortofolio.model.Article;
+import com.personal.website.digitalPortofolio.model.ArticleType;
+import com.personal.website.digitalPortofolio.model.Author;
 import com.personal.website.digitalPortofolio.repository.ArticleRepo;
-import exception.ApiBadRequestException;
-import exception.ApiNotFoundException;
+import com.personal.website.digitalPortofolio.exception.ApiBadRequestException;
+import com.personal.website.digitalPortofolio.exception.ApiNotFoundException;
+import com.personal.website.digitalPortofolio.repository.AuthorRepo;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -28,30 +30,37 @@ import static org.mockito.Mockito.verify;
 class ArticleServiceTest {
 	@Mock
 	private ArticleRepo articleRepo;
+	@Mock
+	private AuthorRepo authorRepo;
 
 	private ArticleService underTest;
 
 	private final ArticleDTOMapper articleDTOMapper = new ArticleDTOMapper();
 
 	private Article articleTest;
+	private Author author;
 
 	@BeforeEach
 	void setUp() {
-		underTest = new ArticleService(articleRepo, articleDTOMapper);
+		underTest = new ArticleService(articleRepo, authorRepo, articleDTOMapper);
 		articleTest = new Article(
 				"test article title",
-				"test author",
 				"this is article test content",
-				Article.ArticleType.PROJECT
+				ArticleType.PROJECT
+		);
+		author = new Author(
+				"test",
+				"author",
+				"testauthor@mail.com"
 		);
 	}
 
 	@Test
 	void canGetList() {
 		// when
-		underTest.getList();
+		underTest.getList(author.getId());
 		// then
-		verify(articleRepo).findAll();
+		verify(articleRepo).findArticlesByUser(author.getId());
 	}
 
 	@Test
@@ -80,10 +89,12 @@ class ArticleServiceTest {
 	@Test
 	void canCreateArticle() {
 		// given
+		given(authorRepo.findById(author.getId()))
+				.willReturn(Optional.of(author));
 		given(articleRepo.save(articleTest))
 				.willReturn(articleTest);
 		// when
-		underTest.createArticle(articleTest);
+		underTest.createArticle(articleTest, author.getId());
 		// then
 		ArgumentCaptor<Article> articleArgumentCaptor = ArgumentCaptor.forClass(Article.class);
 		verify(articleRepo).save(articleArgumentCaptor.capture());
@@ -93,12 +104,33 @@ class ArticleServiceTest {
 	}
 
 	@Test
-	void canNotCreateArticle() {
+	void canNotCreateWithEmptyArticle() {
+		// given
+		given(authorRepo.findById(anyLong()))
+				.willReturn(Optional.of(author));
 		// when
 		// then
-		assertThatThrownBy(() -> underTest.createArticle(null))
+		assertThatThrownBy(() -> underTest.createArticle(null, anyLong()))
 				.isInstanceOf(ApiBadRequestException.class)
 				.hasMessageContaining("Article can't be empty");
+	}
+
+	@Test
+	void canNotCreateWithEmptyAuthorId() {
+		// when
+		// then
+		assertThatThrownBy(() -> underTest.createArticle(articleTest, null))
+				.isInstanceOf(ApiBadRequestException.class)
+				.hasMessageContaining("AuthorId can't be empty");
+	}
+
+	@Test
+	void canNotCreateWithInvalidAuthorId() {
+		// when
+		// then
+		assertThatThrownBy(() -> underTest.createArticle(articleTest, 2L))
+				.isInstanceOf(ApiNotFoundException.class)
+				.hasMessageContaining(String.format("Author with id %s not found", 2));
 	}
 
 	@Test
