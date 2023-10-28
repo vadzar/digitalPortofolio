@@ -10,8 +10,8 @@ import java.util.List;
 @Repository
 public interface ArticleRepo extends JpaRepository<Article, Long> {
 	@Query(
-			value = "SELECT * FROM article where author_id = ?1",
+			value = "SELECT * FROM article where user_id = ?1",
 			nativeQuery = true
 	)
-	List<Article> findArticlesByUser(long authorId);
+	List<Article> findArticlesByUser(long userId);
 }
