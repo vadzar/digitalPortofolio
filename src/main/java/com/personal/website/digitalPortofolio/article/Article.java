@@ -1,5 +1,6 @@
 package com.personal.website.digitalPortofolio.article;
 
+import com.personal.website.digitalPortofolio.User.User;
 import com.personal.website.digitalPortofolio.author.Author;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,9 @@ public class Article {
 
 	@Enumerated(value = EnumType.STRING)
 	ArticleType type;
+
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	User user;
 
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	Author author;
